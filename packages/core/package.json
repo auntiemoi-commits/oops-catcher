@@ -1,6 +1,6 @@
 {
   "name": "@oops-catcher/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core scan engine for oops-catcher — rules, redaction, and formatters",
   "type": "module",
   "main": "dist/index.js",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/auntiemoi-commits/oops-catcher.git"
+    "url": "git+https://github.com/auntiemoi-commits/oops-catcher.git"
   },
   "license": "MIT",
   "publishConfig": {
