@@ -1,175 +1,120 @@
-# Oops Catcher
+# oops-catcher
 
-A CLI scanner that catches common security footguns before they land in your git history.
+You're moving fast. AI is writing half your code. You're committing things without reading every line.
+
+This catches the stuff that will ruin your weekend.
+
+```bash
+npx oops-catcher scan
+```
 
 ```
-$ npx oops-catcher scan
-
-[CRITICAL] SEC001 · secrets.txt:3
-  Private key block detected
-  Why:  Private keys should not be committed to source control.
-  Fix:  Remove the key from the repo and rotate it immediately.
-  Seen: -----BE[REDACTED]Y-----
-
 [CRITICAL] SEC003 · .env.local:12
   GitHub token detected
-  Why:  Tokens provide API access and should be stored in a secret manager.
-  Fix:  Remove the token and rotate it in GitHub immediately.
   Seen: ghp_[REDACTED]1234
+  Fix:  Remove and rotate it in GitHub now.
+
+[CRITICAL] SEC004 · config/stripe.js:3
+  Stripe live key detected
+  Seen: sk_l[REDACTED]3AB
+  Fix:  Remove and rotate it in the Stripe dashboard now.
 
 [WARNING] CON004 · Dockerfile:1
-  No USER instruction in Dockerfile (runs as root)
-  Why:  Containers that run as root increase blast radius if compromised.
-  Fix:  Add a USER instruction to run as a non-root user.
+  No USER instruction — container runs as root
+  Fix:  Add a USER instruction.
 
-3 findings (2 critical, 1 warning)
+3 findings  ·  2 critical  ·  1 warning
 ```
 
-Oops Catcher **never prints full secrets** — matched values are always redacted.
+Secrets are never printed in full. Always redacted.
+
+---
+
+## Install the pre-commit hook and forget about it
+
+```bash
+npx oops-catcher install-hook
+```
+
+Now it runs automatically on every `git commit`. If it finds something critical, the commit is blocked. You can fix it before it ever touches your history.
 
 ---
 
 ## What it catches
 
-### Secrets
-| Rule | What |
-|---|---|
-| SEC001 | Private key blocks (PEM, OpenSSH, PGP) |
-| SEC002 | AWS access key IDs and secret keys |
-| SEC003 | GitHub personal access tokens (ghp_*, github_pat_*) |
-| SEC004 | Stripe live secret keys (sk_live_*) |
-| SEC005 | Slack tokens (xoxb-, xapp-, xoxp-, …) |
-| SEC006 | GCP service account key JSON files |
-| SEC007 | Secrets files tracked (.env, *.pem, id_rsa, credentials.json, …) |
-| SEC050 | High-entropy string heuristic |
+**Secrets**
+- Private keys (PEM, OpenSSH, PGP)
+- AWS access keys and secrets
+- GitHub tokens (`ghp_*`, `github_pat_*`)
+- Stripe live keys (`sk_live_*`)
+- Slack tokens (`xoxb-`, `xapp-`, …)
+- GCP service account JSON files
+- `.env` files, `id_rsa`, `credentials.json`, `*.pem` tracked in git
+- High-entropy strings that look like secrets even if they don't match a known format
 
-### Containers
-| Rule | What |
-|---|---|
-| CON001 | Docker socket mounted (/var/run/docker.sock) |
-| CON002 | Privileged container (privileged: true / --privileged) |
-| CON003 | Host networking (network_mode: host) |
-| CON004 | Container runs as root (no USER in Dockerfile) |
-| CON101 | Credential directories mounted (~/.ssh, ~/.aws, ~/.config/gcloud) |
-| CON102 | Remote script execution piped to shell (curl\|bash, wget\|sh) |
+**Containers** (devcontainer.json, docker-compose, Dockerfile)
+- Docker socket mounted (instant host escape)
+- Privileged containers
+- Host networking
+- Running as root
+- `~/.ssh`, `~/.aws`, `~/.config/gcloud` mounted into containers
+- `curl | bash` / `wget | sh` in setup scripts
 
-### AI artifacts
-| Rule | What |
-|---|---|
-| AI001 | AI transcript/prompt files tracked (*chat*, *prompt*, *transcript*, …) |
-| AI002 | Secrets found inside AI artifact files |
-
-See [docs/RULES.md](docs/RULES.md) for full descriptions, false positive guidance, and tuning options.
-
----
-
-## Install
-
-```bash
-npm install -g oops-catcher
-```
-
-Or run without installing:
-
-```bash
-npx oops-catcher scan
-```
+**AI artifacts**
+- Chat transcripts, prompt logs, and LLM output files committed to the repo
+- Secrets found *inside* those files (it happens more than you think)
 
 ---
 
 ## Usage
 
 ```bash
-# Scan everything in the current repo
+# Scan the whole repo
 oops scan
 
-# Scan only staged changes (fast, good for pre-commit)
+# Scan only what you're about to commit
 oops scan --staged
 
-# Write a starter oops.yml config to the current directory
+# Write a config file so you can tune it
 oops init
 
-# Install as a git pre-commit hook
+# Install the pre-commit hook
 oops install-hook
 ```
 
-Exit codes: `0` = no findings at or above `failOn` severity, `1` = findings found, `2` = usage error.
-
 ---
 
-## Configuration
+## Tune it for your repo
 
-`oops init` writes a starter `oops.yml`. The defaults:
-
-```yaml
-version: 1
-include: ["**/*"]
-exclude:
-  - ".git/**"
-  - "node_modules/**"
-  - "dist/**"
-  - "build/**"
-rulesets: ["secrets_v1", "containers_v1", "ai_artifacts_v1"]
-rules:
-  disable: []
-  severity_overrides: {}
-output:
-  format: text       # or: json
-  failOn: critical   # or: warning, info
-  redact:
-    showPrefix: 4
-    showSuffix: 4
-allowlist:
-  paths: []
-  rules: {}
+```bash
+oops init
 ```
 
-**Disable a rule:**
+This writes an `oops.yml`. Common things to tweak:
+
+**Turn off a noisy rule:**
 ```yaml
 rules:
-  disable: ["SEC050"]  # turn off high-entropy heuristic
+  disable: ["SEC050"]  # high-entropy heuristic fires too much on your codebase
 ```
 
-**Upgrade a severity:**
-```yaml
-rules:
-  severity_overrides:
-    SEC007: critical  # treat tracked secrets files as critical
-```
-
-**Exclude paths (e.g. test fixtures):**
+**Exclude your test fixtures:**
 ```yaml
 exclude:
   - "**/fixtures/**"
   - "**/test/**"
 ```
 
-**JSON output** (for CI pipelines, `jq`, etc.):
+**Make tracked secrets files a hard block instead of a warning:**
+```yaml
+rules:
+  severity_overrides:
+    SEC007: critical
+```
+
+**JSON output for piping:**
 ```bash
 oops scan --format json | jq '.[] | select(.severity == "critical")'
-```
-Or set `output.format: json` in `oops.yml`.
-
-See [docs/configuration.md](docs/configuration.md) for the full reference.
-
----
-
-## Pre-commit hook
-
-```bash
-oops install-hook
-```
-
-Installs a `.git/hooks/pre-commit` that runs `oops scan --staged` before every commit. Any critical finding blocks the commit.
-
-Or add to an existing `.pre-commit-config.yaml`:
-
-```yaml
-repos:
-  - repo: https://github.com/auntiemoi-commits/oops-catcher
-    rev: v0.1.0
-    hooks:
-      - id: oops-scan
 ```
 
 ---
@@ -177,35 +122,35 @@ repos:
 ## CI
 
 ```yaml
-# GitHub Actions
-- name: Oops Catcher
+- name: oops-catcher
   run: npx oops-catcher scan
 ```
 
-To fail only on critical findings (default) or tune the threshold:
+Exits `1` if anything critical is found. Exits `0` if you're clean.
 
-```yaml
-- run: npx oops-catcher scan
-  env:
-    OOPS_FAIL_ON: warning
-```
+---
+
+## The AI artifact rules
+
+If you're using Cursor, Claude, Copilot, or any AI tool — you've probably saved chat logs, prompt files, or LLM output into your repo at some point. Sometimes those files have API keys in them because you pasted something into the chat to get help debugging.
+
+`AI001` flags files that look like AI artifacts (by name).
+`AI002` scans those files for secrets.
+
+It's a niche rule set that exists because we needed it.
 
 ---
 
 ## Contributing
 
-Bug reports and rule suggestions welcome — open an issue. PRs welcome too.
-
-Rules live in `packages/core/src/rules/`. Each rule set is a plain array of `Rule` objects with `appliesTo` (path filter) and `run` (content scanner) functions. Tests use `vitest` and fixture files in `packages/core/test/fixtures/`.
+Rules live in `packages/core/src/rules/`. Each rule is a plain object with two functions: `appliesTo(path)` and `run(ctx)`. Tests use vitest with fixture files.
 
 ```bash
-npm install
-npm run build
-npm test
+npm install && npm run build && npm test
 ```
+
+PRs and rule suggestions welcome — open an issue.
 
 ---
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © Structured Enough LLC
