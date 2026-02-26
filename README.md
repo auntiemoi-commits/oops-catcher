@@ -2,7 +2,7 @@
 
 You're moving fast. AI is writing half your code. You're committing things without reading every line.
 
-This catches the stuff that will ruin your weekend.
+This isn't a replacement for a security review, but it helps catch the stuff that could ruin your weekend.
 
 ```bash
 npx oops-catcher scan
