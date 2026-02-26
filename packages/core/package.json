@@ -1,0 +1,33 @@
+{
+  "name": "@oops-catcher/core",
+  "version": "0.1.0",
+  "description": "Core scan engine for oops-catcher — rules, redaction, and formatters",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/auntiemoi-commits/oops-catcher.git"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.2",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.8"
+  }
+}

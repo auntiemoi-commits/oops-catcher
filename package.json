@@ -1,0 +1,27 @@
+{
+  "name": "oops-catcher",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@10.5.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/micromatch": "^4.0.10",
+    "@types/node": "^25.3.2",
+    "fast-glob": "^3.3.2",
+    "js-yaml": "^4.1.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0",
+    "zod": "^3.23.8"
+  },
+  "dependencies": {
+    "micromatch": "^4.0.8"
+  }
+}

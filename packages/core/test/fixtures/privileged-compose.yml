@@ -1,0 +1,7 @@
+services:
+  app:
+    image: myapp:latest
+    privileged: true
+    network_mode: host
+    volumes:
+      - ~/.aws:/root/.aws

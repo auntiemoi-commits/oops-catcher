@@ -1,0 +1,2 @@
+User: Here is my API key: ghp_1234567890abcdef1234567890abcdef1234
+Assistant: That looks like a GitHub token. You should rotate it.

@@ -1,0 +1,2 @@
+const TOKEN = "aB3dEf7gHi2jKl5mNoPqRs9tUvWxYz0A";
+const NORMAL = "hello world this is not a secret";

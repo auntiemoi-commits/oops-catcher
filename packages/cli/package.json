@@ -1,0 +1,36 @@
+{
+  "name": "oops-catcher",
+  "version": "0.1.0",
+  "description": "CLI scanner for secrets, risky container defaults, and AI artifact leakage in git repos",
+  "type": "module",
+  "bin": {
+    "oops": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/auntiemoi-commits/oops-catcher.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "secrets",
+    "cli",
+    "git",
+    "devcontainer",
+    "docker",
+    "ai-safety"
+  ],
+  "dependencies": {
+    "@oops-catcher/core": "0.1.0",
+    "zod": "^3.23.8",
+    "js-yaml": "^4.1.0",
+    "fast-glob": "^3.3.2",
+    "micromatch": "^4.0.8"
+  }
+}
